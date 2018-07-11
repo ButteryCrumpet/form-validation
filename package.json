@@ -1,0 +1,41 @@
+{
+  "name": "pp-validation-rules",
+  "version": "0.0.1",
+  "description": "validation rules",
+  "main": "index.ts",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "test": "jest"
+  },
+  "author": "Simon Leigh",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^23.1.4",
+    "@types/ramda": "^0.25.34",
+    "jest": "^23.2.0",
+    "ramda": "^0.25.0",
+    "ts-jest": "^23.0.0",
+    "ts-loader": "^4.4.2",
+    "typescript": "^2.9.2",
+    "webpack": "^4.14.0",
+    "webpack-cli": "^3.0.8"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "roots": [
+      "./tests"
+    ]
+  }
+}
