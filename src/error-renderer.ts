@@ -6,14 +6,18 @@ const render: (messages: StringMap, prettyNames: StringMap) => (state: State, tr
       if (triggered !== field.name && triggered !== undefined) {
         return
       }
-      const errorElement = <HTMLElement>document.querySelector(`[data-pp-e=${field.name}]`)
-      if (field.errors.length <= 0) {
-        errorElement.style.display = "none"
+      let errorElement = document.querySelector(`[data-pp-e=${field.name}]`)
+      if (!errorElement) {
         return
       }
-      errorElement.style.display = "block"
-      if (errorElement) {
-        errorElement.innerHTML = field.errors.reduce((str, error) => {
+      let casted = <HTMLElement>errorElement;
+      if (field.errors.length <= 0) {
+        casted.style.display = "none"
+        return
+      }
+      casted.style.display = "block"
+      if (casted) {
+        casted.innerHTML = field.errors.reduce((str, error) => {
           const name = prettyNames.hasOwnProperty(field.name)
               ? prettyNames[field.name]
               : field.name

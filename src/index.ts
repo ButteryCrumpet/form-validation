@@ -5,6 +5,7 @@ import render from "./error-renderer"
 import { Field, State, Config } from "./typings"
 
 const V_ATTR = "data-pp-v"
+const F_ATTR = "data-pp-form"
 
 const toInputList: (nodes: NodeList) => ReadonlyArray<HTMLInputElement> =
   nodes => Array.prototype.slice.call(nodes).map((n: Element) => <HTMLInputElement>n)  
@@ -71,7 +72,7 @@ const addEventListeners: (state: State, form: HTMLFormElement, renderFunc: Funct
 }
 
 export const init = (config: Config) => {
-  const form = <HTMLFormElement>document.querySelector("[data-pp-form]")
+  const form = <HTMLFormElement>document.querySelector(`[${F_ATTR}]`)
   if (!form) {
     return false
   }
