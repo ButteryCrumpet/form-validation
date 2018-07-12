@@ -1,9 +1,9 @@
 import { State, StringMap } from "./typings"
 
-const render: (messages: StringMap, prettyNames: StringMap) => (state: State, triggered: string | null) => void =
+const render: (messages: StringMap, prettyNames: StringMap) => (state: State, triggered?: string | undefined | null) => void =
   (messages, prettyNames) => (state, triggered) => {
     state.forEach(field => {
-      if (triggered !== field.name && triggered !== "re-all") {
+      if (triggered !== field.name && triggered !== undefined) {
         return
       }
       const errorElement = <HTMLElement>document.querySelector(`[data-pp-e=${field.name}]`)

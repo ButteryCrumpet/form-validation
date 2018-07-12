@@ -7,7 +7,7 @@ export interface Field {
   name: string
   value: string
   validator: Function
-  errors: string[]
+  errors: ReadonlyArray<string>
 }
 
 export type State = ReadonlyArray<Field>
