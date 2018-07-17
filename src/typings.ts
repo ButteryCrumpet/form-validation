@@ -4,6 +4,7 @@ export interface Config {
 }
 
 export interface Field {
+  required: boolean
   name: string
   value: string
   validator: Function

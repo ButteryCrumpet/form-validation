@@ -21,20 +21,30 @@ const initState: (acc: State, ele: HTMLInputElement) => State =
       return acc
     }
     const validator = factory(validators)(parse(attr))
+    const required = attr.lastIndexOf("required") !== -1
     const newField = {
+      required: required,
       name: name,
       validator: validator,
       value: ele.value,
-      errors: validator(ele.value)
+      errors: validate(ele.value, validator, required)
     }
     return [...acc, newField]
   }
+
+const validate = (value: string, validator: Function, required: boolean) => {
+  console.log(value, required)
+  if (value === "" && !required) {
+    return []
+  }
+  return validator(value)
+}
 
 const updateField = (name: string, value: string) => (field: Field) => {
   if (field.name !== name) {
     return { ...field }
   } 
-  return { ...field, value: value, errors: field.validator(value) }
+  return { ...field, value: value, errors: validate(value, field.validator, field.required) }
 }
 const update: (state: State) => (name: string, value: string) => State =
   (state) => (name, value) => {
