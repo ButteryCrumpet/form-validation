@@ -1,5 +1,9 @@
 import { split, contains, map, length } from "ramda"
-import { Parsed } from "./typings"
+
+interface Parsed {
+  name: string
+  args?: any
+}
 
 const toRuleConfig: (arr: ReadonlyArray<string>) => Parsed =
 arr => length(arr) < 2 ? { name: arr[0] } : { name: arr[0], args: stringOrArray(arr[1]) }

@@ -1,5 +1,22 @@
 import { map, has, find, pipe, filter } from "ramda";
-import { RuleConfig, Rule, ResultRule, Result, Err, Validator } from "./typings"
+
+interface RuleConfig {
+  name: string
+  args?: any
+}
+interface Rule {
+  name: string
+  fn: Function
+}
+type Validator = (data: string) => ReadonlyArray<string>
+type ResultRule = (data: string) => Result
+type Result = Ok | Err
+interface Ok {
+  value: string
+}
+interface Err {
+  message: string
+}
 
 const wrapValidator: (func: Function, name: string) => ResultRule =
   (func, name) => data => {
