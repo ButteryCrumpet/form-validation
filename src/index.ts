@@ -11,8 +11,8 @@ interface StringMap { [key: string]: string; }
 interface Config {
   messages?: StringMap
   prettyNames?: StringMap
+  scrollOffset?: number
 }
-
 
 // MODEL
 
@@ -25,13 +25,13 @@ interface Field {
   updated: boolean
   required: boolean
   name: string
-  value: string
+  value: string | boolean
   validator: Function
   errors: ReadonlyArray<string>
 }
 
 export const init = (config: Config) => {
-  const form = <HTMLFormElement>document.querySelector(`[${F_ATTR}]`)
+  const form = document.querySelector(`[${F_ATTR}]`) as HTMLFormElement
   if (!form) {
     return false
   }
@@ -39,15 +39,23 @@ export const init = (config: Config) => {
   const state = {form: form, fields: fields}
   const loadedRender = render(config.messages || {}, config.prettyNames || {})
   const run = Program(state, update, loadedRender)
+  // run("init");
 
   form.addEventListener("change", (e) => {
     const target = <HTMLInputElement>e.target
-    run({ name: target.getAttribute("name") || "", value: target.value })
+    const val = target.type == "checkbox" ? target.checked : target.value
+    run({ name: target.getAttribute("name") || "", value: val })
   }, true)
 
   form.addEventListener("submit", (e) => {
     e.preventDefault()
     run("submit")
+    const scrollTo = form.getBoundingClientRect().top + window.scrollY - (config.scrollOffset || 0);
+    window.scroll({
+      left: 0,
+      top: scrollTo,
+      behavior: "smooth"
+    });
   })
   
   return true
@@ -67,20 +75,21 @@ const initState: (acc: ReadonlyArray<Field>, ele: HTMLInputElement) => ReadonlyA
     const validator = loadedFactory(parse(attr))
     const required = attr.lastIndexOf("required") !== -1
     const newField = {
-      updated: false,
+      updated: true,
       required: required,
       name: name,
       validator: validator,
-      value: ele.value,
-      errors: validate(ele.value, validator, required)
+      value: ele.type == "checkbox" ? ele.checked : ele.value,
+      errors: []
     }
+    newField.errors = validate(newField, newField.value)
     return [...acc, newField]
   }
 
 
 // UPDATE
 
-type Msg = { name: string, value: string } | "submit"
+type Msg = { name: string, value: string | boolean } | "submit" | "init"
 const update: (msg: Msg, state: State) => State =
   (msg, state) => {
     if (msg === "submit") {
@@ -88,6 +97,8 @@ const update: (msg: Msg, state: State) => State =
         state.form.submit()
       }
       return {...state, fields: state.fields.map(field => ({...field, updated: true}))};
+    } else if (msg === "init") {
+      return state
     }
     return {...state, fields: state.fields.map(updateField(msg.name, msg.value))}
   }
@@ -114,6 +125,11 @@ const render: (messages: StringMap, prettyNames: StringMap) => (state: State) =>
         const name = prettyNames.hasOwnProperty(field.name)
             ? prettyNames[field.name]
             : field.name
+            
+        if (messages.hasOwnProperty(error + "_" + field.name)) {
+          const message = messages[error + "_" + field.name].replace("{name}", name)
+          return str += `<p>${message}</p>`
+        }
         if (messages.hasOwnProperty(error)) {
           const message = messages[error].replace("{name}", name)
           return str += `<p>${message}</p>`
@@ -133,21 +149,26 @@ const render: (messages: StringMap, prettyNames: StringMap) => (state: State) =>
 const isValid: (state: ReadonlyArray<Field>) => boolean =
   state => state.reduce((pass, field) => pass && field.errors.length === 0, true)
 
-const validate = (value: string, validator: Function, required: boolean) => {
-  if (value === "" && !required) {
+const validate = (field: Field, newVal: string | boolean) => {
+  if (newVal === "" && !field.required) {
     return []
   }
-  return validator(value)
+  if (newVal === false && field.required) {
+    return ["required"]
+  } else if (newVal === true && field.required) {
+    return []
+  }
+  return field.validator(newVal)
 }
 
-const updateField = (name: string, value: string) => (field: Field) => {
+const updateField = (name: string, value: string | boolean) => (field: Field) => {
   if (field.name !== name) {
     return { ...field, updated: false }
   } 
   return {
     ...field, updated: true,
     value: value,
-    errors: validate(value, field.validator, field.required)
+    errors: validate(field, value)
   }
 }
 
