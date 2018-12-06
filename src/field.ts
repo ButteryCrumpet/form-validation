@@ -16,25 +16,26 @@ interface Field {
 const loadedFactory = factory(validators)
 
 type fromElement = (ele: HTMLInputElement) => Result<Field, string>
-const fromElement: fromElement = ele => {
-  if (!ele.hasAttribute("name")) {
-    return Err("Must have a name attribute")
+export const fromElement: fromElement
+  = ele => {
+    if (!ele.hasAttribute("name")) {
+      return Err("Must have a name attribute")
+    }
+    const validation = ele.getAttribute(VALIDATION_ATTR) || ""
+    const field = {
+      name: ele.getAttribute("name") || "",
+      required: validation.lastIndexOf("required") !== -1 || ele.required,
+      value: ele.value,
+      validator: loadedFactory(parse(validation)),
+      errors: []
+    }
+    return Ok(field)
   }
-  const validation = ele.getAttribute(VALIDATION_ATTR) || ""
-  const field = {
-    name: ele.getAttribute("name") || "",
-    required: validation.lastIndexOf("required") !== -1 || ele.required,
-    value: ele.value,
-    validator: loadedFactory(parse(validation)),
-    errors: []
-  }
-  return Ok(field)
-}
 
 type update = (field: Field) => (value: string) => Field
-const validate: update
+export const validate: update
   = field => value => ({...field, value: value, errors: field.validator(value)})
 
 type isValid = (field: Field) => boolean
-const isValid: isValid
+export const isValid: isValid
   = field => field.errors.length === 0

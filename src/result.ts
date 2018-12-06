@@ -11,15 +11,17 @@ interface Err<E> {
   value: E
 }
 
-export const Err: <T>(message: T) => Err<T>
+type makeErr = <T>(message: T) => Err<T>
+export const Err: makeErr
   = message => ({ type: "err", value: message })
 
-export const Ok: <T>(value: T) => Ok<T>
+type makeOk = <T>(value: T) => Ok<T>
+export const Ok: makeOk
  = value => ({ type: "ok", value: value })
 
- export function isOk<T, E>(result: Result<T, E>): result is Ok<T> {
+export function isOk<T, E>(result: Result<T, E>): result is Ok<T> {
   return result.type === "ok"
- }
+}
 
 export function isErr<T, E>(result: Result<T, E>): result is Err<E> {
   return result.type === "err"
@@ -27,27 +29,12 @@ export function isErr<T, E>(result: Result<T, E>): result is Err<E> {
 
 type map = <U, T, E>(fn: (val: T) => U) => (result: Result<T, E>) => Result<U, E>
 export const map: map
-  = fn => result => {
-    if (isErr(result)) {
-       return result
-    }
-    return Ok(fn(result.value))
-  }
-
+  = fn => result => isOk(result) ? Ok(fn(result.value)) : result 
+    
 type mapErr = <U, T, E>(fn: (val: E) => U) => (result: Result<T, E>) => Result<T, U>
 export const mapErr: mapErr
-  = fn => result => {
-    if (isOk(result)) {
-       return result
-    }
-    return Err(fn(result.value))
-  }
+  = fn => result => isErr(result) ? Err(fn(result.value)) : result 
 
 type andThen = <U, T, E>(fn: (val: T) => Result<U, E>) => (result: Result<T, E>) => Result<U, E>
 export const andThen: andThen
-  = fn => result => {
-    if (isErr(result)) {
-      return result;
-    }
-    return fn(result.value)
-  }
+  = fn => result => isOk(result) ? fn(result.value) : result
