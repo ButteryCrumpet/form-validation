@@ -26,3 +26,7 @@ export const andThen: andThen
 type withDefault = <T>(fallback: T) => (maybe: Maybe<T>) => T
 export const withDefault: withDefault
   = fallback => maybe => isSome(maybe) ? maybe[1] : fallback
+
+type unwrap = <T>(some: Some<T>) => T
+export const unwrap: unwrap
+  = some => some[1]
