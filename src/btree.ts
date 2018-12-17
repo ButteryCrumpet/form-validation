@@ -1,14 +1,6 @@
-import { Maybe, isNone, None, Some, unwrap } from "./maybe"
-// Red Black Tree impl
-// Binary search + black or red
-// Root is always black
-// new node is always red
-// no red-red parent-child
-//number of black nodes from root to node
-//with less than 2 children is same
+import { Maybe, isNone, None, Some, unwrap, andThen, map as map_maybe } from "./maybe"
 
 type Comparator<T> = (first: T, second: T) => -1 | 0 | 1
-type Comparable = number | string
 
 export type BTree<K, T> = Maybe<BTNode<K, T>>
 
@@ -20,9 +12,7 @@ type BTNode<K, T> = {
 }
 
 
-type has = <K extends Comparable, T>(tree: BTree<K, T>) => (key: K) => boolean
-
-type traverse = <K extends Comparable, T, U>(fn: (key: K, value: T) => U) => (tree: BTree<K, T>) => BTree<K, U>
+type has = <K, T>(tree: BTree<K, T>) => (key: K) => boolean
 
 type newNode = <K, T>(key: K, value: T, left: BTree<K, T>, right: BTree<K, T>) => BTNode<K, T>
 const newNode: newNode
@@ -35,16 +25,17 @@ const newNode: newNode
   }
 }
 
-type empty = () => BTree<any, any>
-export const empty: empty
-  = () => None()
 
-type singleton = <K extends Comparable, T>(key: K) => (value: T) => BTree<K, T>
+type empty = () => BTree<any, any>
+export const empty: empty = () => None()
+
+
+type singleton = <K, T>(key: K) => (value: T) => BTree<K, T>
 export const singleton: singleton
   = key => value => Some(newNode(key, value, None(), None()))
 
 
-type insert = <K extends Comparable, T>(key: K) => (value: T) => (tree: BTree<K, T>) => BTree<K, T>
+type insert = <K>(key: K) => <T>(value: T) => (tree: BTree<K, T>) => BTree<K, T>
 export const insert: insert
   = k => v => t => {
     if (isNone(t)) {
@@ -60,33 +51,64 @@ export const insert: insert
     return t
   }
 
-type get = <K extends Comparable, T>(key: K) => (tree: BTree<K, T>) =>  Maybe<T>
-export const get: get
-  = k => t => {
-    if (isNone(t)) {
-      return t
+
+type get = <K>(key: K) => <T>(tree: BTree<K, T>) => Maybe<T>
+export const get: get = k => andThen(_get(k))
+
+type _get = <K>(key: K) => <T>(node: BTNode<K, T>) => Maybe<T>
+const _get: _get
+  = k => n => {
+    if (k < n.key) {
+      return get(k)(n.left)
     }
-    const node = unwrap(t)
-    if (k < node.key) {
-      return get(k)(node.left)
+    if (k > n.key) {
+      return get(k)(n.right)
     }
-    if (k > node.key) {
-      return get(k)(node.right)
-    }
-    return Some(node.value)
+    return Some(n.value)
   }
 
-type remove = <K extends Comparable, T>(key: K) => (tree: BTree<K, T>) => BTree<K, T>
-export const remove: remove
-  = k => t => {
+
+type remove = <K>(key: K) => <T>(tree: BTree<K, T>) => BTree<K, T>
+export const remove: remove = k => andThen(_remove(k))
+
+type _remove = <K>(key: K) => <T>(tree: BTNode<K, T>) => BTree<K, T>
+const _remove: _remove
+  = k => n => {
+    if (k < n.key) {
+      return Some(newNode(n.key, n.value, remove(k)(n.left), n.right))
+    }
+    if (k > n.key) {
+      return Some(newNode(n.key, n.value, n.left, remove(k)(n.left)))
+    }
+    return None()
+  }
+
+
+type fold = <K, T, U>(fn: (key: K, value: T, acc: U) => U) => (start: U) => (tree: BTree<K, T>) => U
+export const foldl: fold
+  = fn => a => t => {
     if (isNone(t)) {
-      return t
+      return a
     }
     const node = unwrap(t)
-    if (k < node.key) {
-      
-    }
-    if (k > node.key) {
-      
-    }
+    return foldl(fn)(fn(node.key, node.value, foldl(fn)(a)(node.left)))(node.right)
   }
+
+
+export const foldr: fold
+= fn => a => t => {
+  if (isNone(t)) {
+    return a
+  }
+  const node = unwrap(t)
+  return foldr(fn)(fn(node.key, node.value, foldr(fn)(a)(node.right)))(node.left)
+}
+
+type map = <K, T, U>(fn: (key: K, value: T) => U) => (tree: BTree<K, T>) => BTree<K, U>
+export const map: map
+= fn => map_maybe(node => {
+    const left = map(fn)(node.left)
+    const val = fn(node.key, node.value)
+    const right = map(fn)(node.right)
+    return newNode(node.key, val, left, right)
+  })
