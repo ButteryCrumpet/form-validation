@@ -1,13 +1,14 @@
-import { Result, Ok, Err } from "./result";
+import { Result, Ok, Err, isOk } from "./result";
 
-export interface Field {
-  readonly required: boolean
-  readonly name: string
-  readonly value: string
-  readonly errors: string[]
+type Value = Result<string, string[]>
+
+export type Field = {
+  required: boolean
+  name: string
+  value: Value
 }
 
-export type Validation<T> = (field: string) => Result<Field, T>
+export type Validation<T> = (field: string) => Value
 
 type fromElement = (ele: HTMLInputElement) => Result<Field, string>
 export const fromElement: fromElement
@@ -15,23 +16,21 @@ export const fromElement: fromElement
     if (!ele.hasAttribute("name")) {
       return Err("Must have a name attribute")
     }
-    const field = {
-      name: ele.getAttribute("name") || "",
+    return Ok({
+      name: ele.name,
       required: ele.required,
-      value: ele.value,
-      errors: []
-    }
-    return Ok(field)
+      value: Ok(ele.value)
+    })
   }
 
 type update = (field: Field) => (value: string) => Field
 export const update: update
-  = field => value => ({...field, value: value})
+  = field => value => ({...field, value: Ok(value)})
 
 type isValid = (field: Field) => boolean
 export const isValid: isValid
-  = field => field.errors.length === 0
+  = field => isOk(field.value)
 
-type validate = <T>(validation: Validation<T>) => (field: Field) => Result<Field, T>
+type validate = <T>(validation: Validation<T>) => (field: Field) => Value
 export const validate: validate
  = validation => field => validation(field.value)

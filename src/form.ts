@@ -17,4 +17,4 @@ type toList = (form: Form) => FField[]
 const toList: toList
   = form => Object.keys(form).map((key) => form[key])
 
-type hasField = (form: Form) => 
+type hasField = (form: Form) => ""

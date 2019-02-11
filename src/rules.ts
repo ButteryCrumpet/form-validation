@@ -36,6 +36,6 @@ export const maxLength: (max: number) => (x: string) => boolean =
 // file extension validation
 const defaultToEmptyString = defaultTo("")
 const splitAtDot = split(".")
-const getExt = pipe(splitAtDot, last, defaultToEmptyString)
+const getExt = fname => defaultToEmptyString(last(splitAtDot(fname)))
 export const extensions: (extensions: ReadonlyArray<string>) => (file: string) => boolean =
   extensions => file => whitelist(extensions)(getExt(file))
