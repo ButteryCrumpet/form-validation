@@ -1,8 +1,6 @@
+import { RuleConfig } from "./factory";
 
-export interface Parsed {
-  name: string;
-  args: string[];
-}
+type Parsed = RuleConfig;
 
 type parse = (str: string, ruleSep?: string, argSep?: string) => ReadonlyArray<Parsed>;
 export const parse: parse = (str, ruleSep = "|", argSep = ":") =>

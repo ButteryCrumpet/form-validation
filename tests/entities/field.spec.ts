@@ -1,4 +1,4 @@
-import * as f from "../../src/entities/field";
+import * as f from "../../src/form/field";
 
 describe("fields", () => {
 

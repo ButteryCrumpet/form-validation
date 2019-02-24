@@ -1,61 +1,47 @@
-import { map, find, pipe, filter } from "ramda";
 
-interface RuleConfig {
+export interface RuleConfig {
   name: string;
   args: string[];
 }
 
-interface Rule {
-  name: string;
-  fn: Function;
+
+export interface RuleList {
+  [key: string]: RuleFactory;
 }
 
-type Validator = (data: string) => ReadonlyArray<string>;
 
-type ResultRule = (data: string) => Result;
-
-type Result = Ok | Err;
-
-interface Ok {
-  value: string;
+export interface Context {
+  [key: string]: string;
 }
 
-interface Err {
-  message: string;
-}
 
-const wrapValidator: (func: Function, name: string) => ResultRule =
-  (func, name) => data => {
-    return func(data)
-      ? {value: data}
-      : {message: name};
+export type Validator = (data: string, context?: Context) => string[];
+
+
+type RuleFactory = (...args: string[]) => Rule;
+
+
+type Rule = (data: string, context?: Context) => boolean;
+
+
+type factory = (rules: RuleList) => (config: ReadonlyArray<RuleConfig>) => Validator;
+export const factory: factory = rules => config =>
+  {
+    const getRule = buildRule(rules);
+    const validators = config.map(getRule);
+
+    return (data, context) => {
+      return validators
+        .reduce((errs: string[], [name, fn]) => fn(data, context) ? errs : errs.concat([name]), []);
+    };
   };
 
-const build: (conf: RuleConfig, rule: Rule) => ResultRule =
-  (conf, rule) => {
-    return conf.name.length > 0
-      ? wrapValidator(rule.fn(conf.args), conf.name)
-      : wrapValidator(rule.fn, conf.name);
-  };
 
-const getValidator: (name: string, confArr: ReadonlyArray<Rule>) => Rule =
-  (name, confArr) => {
-    const f = find((c) => c.name === name, confArr);
-    if (!f) {
-      throw new Error(`A validator with the name "${name}" does not exist`);
+type ruleBuilder = (rules: RuleList) => (conf: RuleConfig) => [string, Rule];
+const buildRule: ruleBuilder = rules => conf =>
+  {
+    if (!rules.hasOwnProperty(conf.name)) {
+      throw new Error(`A validator with the name "${conf.name}" does not exist`);
     }
-    return f;
+    return [conf.name, rules[conf.name](...conf.args)];
   };
-
-const builder: (rules: ReadonlyArray<Rule>, config: ReadonlyArray<RuleConfig>) => ReadonlyArray<ResultRule> =
-  (rules, config) => map((c) => build(c, getValidator(c.name, rules)), config);
- 
-const isErr = (object: any): object is Err => 'message' in object;
-const filterErrors = (errors: ReadonlyArray<Result>) => filter(isErr)(errors);
-const mapGetMessage = map((e: Err) => e.message);
-const factory: (rules: ReadonlyArray<Rule>) => (config: ReadonlyArray<RuleConfig>) => Validator =
-  rules => config => {
-    return pipe(d => map((f) => f(d), builder(rules, config)), filterErrors, mapGetMessage);
-  };
-  
-export default factory;

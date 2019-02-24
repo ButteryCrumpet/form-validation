@@ -20,7 +20,7 @@ import * as F from "./field";
  * Use form() builder function to create a form.
  * 
  */
-type Form<T> = ReadonlyArray<Field<T>>;
+export type Form<T> = ReadonlyArray<Field<T>>;
 
 
 
