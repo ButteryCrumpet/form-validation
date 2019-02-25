@@ -381,4 +381,9 @@ const fromInsertable: fromInsertable = ins =>
 
 type updateField = <T>(ch: ChangeSet<T>, field: Field<T>) => F.DirtyField<T>;
 const updateField: updateField = (ch, f) =>
-  F.dirty(ch.name, ch.value || f.value, ch.validation || f.validation, ch.required || f.required);
+  F.dirty(
+    ch.name,
+    ch.value !== undefined ? ch.value : f.value,
+    ch.validation !== undefined ? ch.validation : f.validation,
+    ch.required !== undefined ? ch.required : f.required
+  );

@@ -1,18 +1,18 @@
 import { RuleList } from "./factory";
-import { regex } from "./rules/regex";
-import { empty } from "./rules/empty";
-import { numeric } from "./rules/numeric";
-import { greaterThan } from "./rules/gtthan";
-import { lessThan } from "./rules/lsthan";
-import { blacklist } from "./rules/blacklist";
-import { whitelist } from "./rules/whitelist";
-import { minLength } from "./rules/min";
-import { maxLength } from "./rules/max";
+import {
+  regex,
+  numeric,
+  greaterThan,
+  lessThan,
+  blacklist, 
+  whitelist, 
+  minLength,
+  maxLength
+} from "./rules";
 
 
 export const ruleFactories: RuleList = { 
-  required: () => (str: string) => !empty(str),
-
+  
   regex: (regexp: string) => regex(new RegExp(regexp)),
 
   phone: () => regex(/^\(?\+?\d{1,4}\)?-?\d{2,4}-?\d{4}$/),

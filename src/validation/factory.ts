@@ -1,3 +1,4 @@
+import { required } from "../form/field";
 
 export interface RuleConfig {
   name: string;
@@ -24,13 +25,21 @@ type RuleFactory = (...args: string[]) => Rule;
 type Rule = (data: string, context?: Context) => boolean;
 
 
-type factory = (rules: RuleList) => (config: ReadonlyArray<RuleConfig>) => Validator;
-export const factory: factory = rules => config =>
+type factory = (rules: RuleList) => (config: ReadonlyArray<RuleConfig>, required: boolean) => Validator;
+export const factory: factory = rules => (config, required) =>
   {
-    const getRule = buildRule(rules);
-    const validators = config.map(getRule);
+    const validators = config.map(buildRule(rules));
 
     return (data, context) => {
+      
+      if (!required && data === "") {
+        return [];
+      }
+
+      if (required && data === "") {
+        return ["required"];
+      }
+      
       return validators
         .reduce((errs: string[], [name, fn]) => fn(data, context) ? errs : errs.concat([name]), []);
     };

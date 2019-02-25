@@ -37,7 +37,7 @@ export const render: render = (prettyNames, messages) => state =>
             }
           
             const p = document.createElement("p");
-            console.log(p, str, ele);
+
             p.textContent = str;
             ele.appendChild(p);
             ele.style.display = "block";

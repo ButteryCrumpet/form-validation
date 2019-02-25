@@ -1,5 +1,5 @@
 import { Reducer } from "redux";
-import { Form, ChangeSet, update, form, validate, valid, Insertable } from "./form/form";
+import { Form, ChangeSet, update, form, validate, valid, Insertable, insert, remove } from "./form/form";
 import { validationFactory } from "./validation";
 import { FormActions, Config, ActionTypes } from "./actions";
 
@@ -7,6 +7,7 @@ import { FormActions, Config, ActionTypes } from "./actions";
 export interface State {
   readonly formElement: HTMLFormElement;
   readonly form: Form<string>;
+  readonly attr: string;
 }
 
 const _validate = validate(memoise(validationFactory));
@@ -17,14 +18,22 @@ export const reducer: Reducer = (state: State, action: FormActions) => {
     case ActionTypes.INIT:
       return init(action.payload);
     case ActionTypes.UPDATE:
-      return updateForm(state, action.payload);
+      return updateInput(state, action.payload);
     case ActionTypes.SUBMIT:
       return submitForm(state);
+    case ActionTypes.ADD:
+      return addInput(state, action.payload);
+    case ActionTypes.REMOVE:
+      return removeInput(state, action.payload);
     default:
       return state;
   }
 
 };
+
+
+
+// ACTION REDUCERS
 
 type init = (config: Config) => State;
 const init: init = config => 
@@ -34,17 +43,36 @@ const init: init = config =>
     
     return {
       formElement: config.ele,
-      form: form(inputs.map(e => inputToField(e, config.attr)))
+      form: form(inputs.map(e => inputToField(e, config.attr))),
+      attr: config.attr
     };
   };
 
 
 
-type updateForm = (state: State, change: ChangeSet<string>) => State;
-const updateForm: updateForm = (state, change) =>
+type updateInput = (state: State, change: ChangeSet<string>) => State;
+const updateInput: updateInput = (state, change) =>
   ({
-    formElement: state.formElement,
+    ...state,
     form: _validate(update(change, state.form))
+  });
+
+
+
+type addInput = (state: State, element: HTMLInputElement) => State;
+const addInput: addInput = (state, element) =>
+  ({
+    ...state,
+    form: insert(inputToField(element, state.attr))(state.form)
+  });
+
+
+
+type removeInput = (state: State, name: string) => State;
+const removeInput: removeInput = (state, name) =>
+  ({
+    ...state,
+    form: remove(name)(state.form)
   });
 
 
@@ -56,7 +84,7 @@ const submitForm: submitForm = state =>
     if (valid(form)) {
       state.formElement.submit();
     }
-    return { formElement: state.formElement, form };
+    return { ...state, form };
   };
 
 
@@ -74,12 +102,14 @@ const inputToField: inputToField = (input, attr) =>
 
 
 
+// HELPERS
+
 type memo<T> = {[key: string]: T};
-function memoise<T>(fn: (str: string) => T) {
+function memoise<T>(fn: (str: string, r: boolean) => T) {
   const memo: memo<T> = {};
-  return (str: string) => {
-    if (!memo.hasOwnProperty(str)) {
-      memo[str] = fn(str);
+  return (str: string, r: boolean) => {
+    if (!memo.hasOwnProperty(`${str}${r ? "t" : "f"}`)) {
+      memo[str] = fn(str, r);
     }
     return memo[str];
   };

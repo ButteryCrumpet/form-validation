@@ -5,6 +5,7 @@ type Parsed = RuleConfig;
 type parse = (str: string, ruleSep?: string, argSep?: string) => ReadonlyArray<Parsed>;
 export const parse: parse = (str, ruleSep = "|", argSep = ":") =>
   str.split(ruleSep)
+    .filter(s => s !== "")
     .map(s => s.split(argSep))
     .map(toRuleConfig);
 

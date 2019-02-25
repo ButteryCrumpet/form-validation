@@ -1,25 +1,27 @@
-import parse from "../src/parser"
-import factory from "../src/factory"
-import * as rules from "../src/rules";
+import { parse } from "../src/validation/parser";
+import { factory } from "../src/validation/factory";
+import { ruleFactories } from "../src/validation/default-validator-conf";
 
 describe("parser & factory integration", () => {
-  const configuredFactory = factory([
-    {name: "required", fn: rules.existsAndFilled},
-    {name: "blacklist", fn: rules.blacklist},
-    {name: "this-string", fn: rules.regex(/this string/)}
-  ])
-  const parsed = parse("required|blacklist:hi,ho|this-string")
-  const validation = configuredFactory(parsed)
+
+  const configuredFactory = factory(ruleFactories);
+  const parsed = parse("blacklist:hi,ho|whitelist:this string");
+  const validation = configuredFactory(parsed, true);
+
   test("generates a function", () => {
-    expect(validation).toBeInstanceOf(Function)
-  })
+    expect(validation).toBeInstanceOf(Function);
+  });
+
   test("validates correctly", () => {
-    expect(validation("this string")).toEqual([])
-  })
+    expect(validation("this string")).toEqual([]);
+  });
+
   test("invalidates correctly", () => {
-    expect(validation("hi")).toEqual(["blacklist", "this-string"])
-  })
+    expect(validation("hi")).toEqual(["blacklist", "whitelist"]);
+  });
+
   test("false on empty if required", () => {
-    expect(validation("")).toEqual(["required", "this-string"])
-  })
-})
+    expect(validation("")).toEqual(["required"]);
+  });
+
+});
