@@ -1,6 +1,7 @@
 import * as Redux from "redux";
 import { reducer } from "./reducer";
 import { render } from "./render";
+import { inputToField } from "./field-builders";
 
 
 type Configuration = {
@@ -14,11 +15,11 @@ type Configuration = {
 
 const defaultConfig: Configuration = {
   messages: {
-    required: "{name} is required",
-    default: "{name} is invalid",
+    required: "{name}を入力してください",
+    default: "{name}は無効です",
   },
   formAttr: "data-pp-form",
-  vAttr: "data-pp-v",
+  vAttr: "data-v",
   debug: false,
 };
 
@@ -42,19 +43,13 @@ export function init(config: Configuration) {
   const _render = render(config.names || {}, config.messages || {});
   store.subscribe(() => _render(store.getState()));
   
-  form.addEventListener("change", (e) => {
-    const target = e.target as HTMLInputElement;
-    store.dispatch({
-      type: "update",
-      payload: {
-        name: target.name,
-        value: target.value
-      }
-    });
-  });
+  const _updateEvent = updateEvent(store, config.vAttr || "");
+
+  form.addEventListener("change", _updateEvent);
 
   form.addEventListener("invalid", (e) => {
     e.preventDefault();
+    _updateEvent(e);
   }, true);
 
   form.addEventListener("submit", (e) => {
@@ -68,6 +63,17 @@ export function init(config: Configuration) {
 }
 
 
+type updateEvent = (store: Redux.Store, attr: string) => (e: Event) => void;
+const updateEvent: updateEvent = (store, attr) => e =>
+  {
+    const target = e.target as HTMLInputElement;
+    store.dispatch({
+      type: "update",
+      payload: inputToField(target, attr)
+    });
+  };
+
+
 // Middleware
 
 const logger: Redux.Middleware = store => next => action => {
@@ -76,3 +82,4 @@ const logger: Redux.Middleware = store => next => action => {
   console.log('next state', store.getState());
   return result;
 };
+

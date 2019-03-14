@@ -14,14 +14,17 @@ describe("parser & factory integration", () => {
 
   test("validates correctly", () => {
     expect(validation("this string")).toEqual([]);
+    expect(validation(["this string", "this string"])).toEqual([]);
   });
 
   test("invalidates correctly", () => {
     expect(validation("hi")).toEqual(["blacklist", "whitelist"]);
+    expect(validation(["hi", 'this string'])).toEqual(["blacklist", "whitelist"]);
   });
 
   test("false on empty if required", () => {
     expect(validation("")).toEqual(["required"]);
+    expect(validation([])).toEqual(["required"]);
   });
 
 });

@@ -2,6 +2,7 @@ import { Reducer } from "redux";
 import { Form, ChangeSet, update, form, validate, valid, Insertable, insert, remove } from "./form/form";
 import { validationFactory } from "./validation";
 import { FormActions, Config, ActionTypes } from "./actions";
+import { inputToField } from "./field-builders";
 
 
 export interface State {
@@ -85,19 +86,6 @@ const submitForm: submitForm = state =>
       state.formElement.submit();
     }
     return { ...state, form };
-  };
-
-
-
-type inputToField = (input: HTMLInputElement, attr: string) => Insertable<string>;
-const inputToField: inputToField = (input, attr) =>
-  {
-    return {
-      name: input.name,
-      value: input.value,
-      validation: input.getAttribute(attr) || "",
-      required: input.required
-    };
   };
 
 

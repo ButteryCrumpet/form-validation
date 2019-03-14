@@ -12,7 +12,7 @@ export const render: render = (prettyNames, messages) => state =>
   {
     all(state.form)
       .forEach(field => {
-        const elements: NodeListOf<HTMLElement> = document.querySelectorAll(`[data-pp-e=${field.name}]`);
+        const elements: NodeListOf<HTMLElement> = document.querySelectorAll(`[data-pp-e="${field.name}"]`);
         
         if (!isInvalid(field)) {
           elements.forEach(e => e.style.display = "none");

@@ -23,7 +23,7 @@
 interface BaseField<T> {
   readonly type: string;
   readonly name: string;
-  readonly value: string;
+  readonly value: string | string[];
   readonly validation: T;
   readonly required: boolean;
 }
@@ -101,7 +101,7 @@ export type Field<T> = UnverifiedField<T> | ValidField<T> | InvalidField<T>;
  * Factory function for ValidField<T>
  * 
  * @param {string} name 
- * @param {string} value
+ * @param {string | string[]} value
  * @param {T} validation 
  * @param {boolean} required
  * @return {ValidField} 
@@ -111,7 +111,7 @@ export type Field<T> = UnverifiedField<T> | ValidField<T> | InvalidField<T>;
  *  const validatedField = valid("email", "example@mail.com", "required|email", true)
  * 
  */
-type valid = <T>(name: string, value: string, validation: T, required: boolean) => ValidField<T>;
+type valid = <T>(name: string, value: string | string[], validation: T, required: boolean) => ValidField<T>;
 export const valid: valid = (n, vl, va, r) =>
   ({type: "valid", name: n, value: vl, validation: va, required: r});
 
@@ -122,7 +122,7 @@ export const valid: valid = (n, vl, va, r) =>
  * Factory function for UnverifiedField<T>
  * 
  * @param {string} name 
- * @param {string} value
+ * @param {string | string[]} value
  * @param {T} validation 
  * @param {boolean} required
  * @return {UnverifiedField} 
@@ -132,7 +132,7 @@ export const valid: valid = (n, vl, va, r) =>
  *  const unverifiedField = unverified("email", "example@mail.com", "required|email", true)
  * 
  */
-type unverified = <T>(name: string, value: string, validation: T, required: boolean) => UnverifiedField<T>;
+type unverified = <T>(name: string, value: string | string[], validation: T, required: boolean) => UnverifiedField<T>;
 export const unverified: unverified = (n, vl, va, r) =>
   ({type: "unverified", name: n, value: vl, validation: va, required: r});
 
@@ -143,7 +143,7 @@ export const unverified: unverified = (n, vl, va, r) =>
  * Factory function for DirtyField<T>
  * 
  * @param {string} name 
- * @param {string} value
+ * @param {string | string[]} value
  * @param {T} validation 
  * @param {boolean} required
  * @return {DirtyField}
@@ -153,7 +153,7 @@ export const unverified: unverified = (n, vl, va, r) =>
  *  const dirtyField = dirty("email", "example@mail.com", "required|email", true)
  * 
  */
-type dirty = <T>(name: string, value: string, validation: T, required: boolean) => DirtyField<T>;
+type dirty = <T>(name: string, value: string | string[], validation: T, required: boolean) => DirtyField<T>;
 export const dirty: dirty = (n, vl, va, r) =>
   ({type: "unverified", name: n, value: vl, validation: va, required: r, dirty: true});
 
@@ -164,7 +164,7 @@ export const dirty: dirty = (n, vl, va, r) =>
  * Factory function for InvalidField<T>
  * 
  * @param {string} name 
- * @param {string} value
+ * @param {string | string[]} value
  * @param {T} validation 
  * @param {boolean} required
  * @param {string[]} errors
@@ -175,7 +175,7 @@ export const dirty: dirty = (n, vl, va, r) =>
  *  const invalidField = invalid("email", "example@mail.com", "required|email", true, ["errors"])
  * 
  */
-type invalid = <T>(name: string, value: string, validation: T, required: boolean, errors: string[]) => InvalidField<T>;
+type invalid = <T>(name: string, value: string | string[], validation: T, required: boolean, errors: string[]) => InvalidField<T>;
 export const invalid: invalid = (n, vl, va, r, e) =>
   ({type: "invalid", name: n, value: vl, validation: va, required: r, errors: e});
 
@@ -264,7 +264,7 @@ export const name: name = f =>
  * Get the value of a Field
  * 
  * @param {Field} field
- * @returns {string}
+ * @returns {string | string[]}
  * 
  * @example
  *  
@@ -272,8 +272,8 @@ export const name: name = f =>
  *  const fieldName = value(field) // example@mail.com
  * 
  */
-type value = <T>(f: Field<T>) => string;
-export const value: name = f =>
+type value = <T>(f: Field<T>) => string | string[];
+export const value: value = f =>
   f.value;
 
 

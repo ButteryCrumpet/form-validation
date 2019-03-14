@@ -9,6 +9,4 @@ export type Validator = Validator;
 
 export type ValidationFactory = (str: string, required: boolean) => Validator;
 export const validationFactory: ValidationFactory = (str, required) =>
-  {
-    return _factory(parse(str), required);
-  };
+  _factory(parse(str), required);

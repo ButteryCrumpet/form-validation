@@ -79,7 +79,7 @@ export type ChangeSet<T> = Partial<Field<T>> & { name: string };
  * 
  */
 type ValidationContext = {
-  [key: string]: string;
+  [key: string]: string | string[];
 };
 
 
@@ -100,7 +100,7 @@ type ValidationContext = {
  * Otherwise probably going to have type errors all over.
  * 
  */
-type ValidationFactory<T> = (validation: T, required: boolean) => (value: string, context: ValidationContext) => string[];
+type ValidationFactory<T> = (validation: T, required: boolean) => (value: string | string[], context: ValidationContext) => string[];
 
 
 
@@ -121,9 +121,10 @@ type ValidationFactory<T> = (validation: T, required: boolean) => (value: string
  */
 type create = <T>(fields: ReadonlyArray<Insertable<T>>) => Form<T>;
 export const form: create = fields =>
-  fields.map(fromInsertable);
+  fields.reduce((form, field) => insert(field)(form), empty(fields));
 
-
+// fucky type system, there must be a better way...
+const empty: create = fields => [];
 
 /**
  * Insert a new field into a form returning a new form.

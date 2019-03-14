@@ -1,4 +1,3 @@
-import { required } from "../form/field";
 
 export interface RuleConfig {
   name: string;
@@ -12,11 +11,11 @@ export interface RuleList {
 
 
 export interface Context {
-  [key: string]: string;
+  [key: string]: string | string[];
 }
 
 
-export type Validator = (data: string, context?: Context) => string[];
+export type Validator = (data: string | string[], context?: Context) => string[];
 
 
 type RuleFactory = (...args: string[]) => Rule;
@@ -31,17 +30,22 @@ export const factory: factory = rules => (config, required) =>
     const validators = config.map(buildRule(rules));
 
     return (data, context) => {
+
+      if (empty(data)) {
+        return required ? ["required"] : [];
+      }
       
-      if (!required && data === "") {
-        return [];
+      if (typeof data === "string") {
+        return validators
+          .reduce((errs: string[], [name, fn]) =>
+            fn(data, context) ? errs : errs.concat([name]), []);
       }
 
-      if (required && data === "") {
-        return ["required"];
-      }
-      
-      return validators
-        .reduce((errs: string[], [name, fn]) => fn(data, context) ? errs : errs.concat([name]), []);
+      return data
+        .reduce((acc: string[], d) => {
+            return acc.concat(validators.reduce((errs: string[], [name, fn]) =>
+              fn(d, context) ? errs : errs.concat([name]), []));
+        }, []);
     };
   };
 
@@ -54,3 +58,8 @@ const buildRule: ruleBuilder = rules => conf =>
     }
     return [conf.name, rules[conf.name](...conf.args)];
   };
+
+
+type empty = (value: string | string[]) => boolean;
+const empty: empty = value =>
+  typeof value === "string" ? value === "" : value.length === 0;
